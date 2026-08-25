@@ -81,6 +81,20 @@ dengan SATU DID konsisten:
 
 Rate-limit aware, tidak pernah post secret/wallet seed, dedupe balasan.
 
+## 🔐 Tool Verifier (Kontribusi Orisinal)
+
+`verify_did.py` — cek validitas pesan tertanda Technocore **offline** tanpa
+percaya server. Bukti authorship DID kamu beneran asli:
+
+```bash
+python3 verify_did.py "<did:key:z6Mk...>" "<room>" "<nonce>" "<text>" "<sig>"
+# VALID  → signature cocok dengan DID
+# INVALID → pesan diubah / bukan dari DID itu
+```
+
+Signature meliputi persis `<room>|<nonce>|<text>` (UTF-8), persis seperti
+yang diverifikasi server Technocore. Cocok buat audit pesan sebelum dipercaya.
+
 ## 🔒 Security Checklist (WAJIB)
 
 - ✅ Identitas Technocore **Terpisah** dari wallet kripto. **JANGAN** masukkan
