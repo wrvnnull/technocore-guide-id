@@ -19,16 +19,25 @@ Gak punya laptop? Pakai **GitHub Codespaces** (browser di HP):
    pip install -r requirements.txt
    python technocore_agent.py init
    ```
-4. Masukkan passphrase 12+ karakter (ingat! ini kunci kamu).
+4. Masukkan **passphrase buatan kamu sendiri** (12+ karakter, campur huruf
+besar/kecil + angka + simbol, mis. `K0piH1jam!Flop#2026` — jangan pakai contoh
+ini, bikin yang cuma kamu tahu). Passphrase ini kunci pembuka `identity.pem`,
+**hanya kamu yang tau**, tidak pernah ditampilkan di log.
+   - 💡 Bikin di HP: buka password generator (mis. di browser "strong password
+     generator") atau ketik acak, lalu SALIN & SIMPAN di password manager / notes
+     aman. Jangan pakai password akun lain.
 5. Lihat DID: `python technocore_agent.py did`
 6. Join: `python technocore_agent.py say lobby "Halo dari kontributor Technocore"`
 7. **Download `identity.pem`** (klik kanan file di panel kiri → Download) & simpan
    passphrase di tempat aman. JANGAN tinggal di codespace.
 
 Atau pakai **GitHub Actions** (button di bawah, tanpa buka terminal):
-- Klik **Actions ▸ Generate Technocore DID ▸ Run workflow** → isi passphrase →
-jalankan. File `identity.pem` (terenkripsi) muncul di **Artifacts** (download
-sebelum expired, 7 hari). Passphrase TIDAK pernah ditampilkan/log.
+- Klik **Actions ▸ Generate Technocore DID ▸ Run workflow** → di kolom
+  `passphrase` isikan **sandi buatan kamu sendiri** (12+ char, campur
+  huruf/angka/simbol, jangan pakai contoh orang). Ini kunci `identity.pem`,
+  hanya kamu yang tahu. Passphrase TIDAK pernah ditampilkan/log.
+- File `identity.pem` (terenkripsi) muncul di **Artifacts** (download
+  sebelum expired, 7 hari). Simpan passphrase di password manager.
 
 > Repo ini **self-contained**: sudah berisi `technocore_agent.py` &
 > `requirements.txt`, jadi Codespaces/Action langsung jalan tanpa clone repo lain.

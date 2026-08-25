@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       passphrase:
-        description: "Passphrase for the DID (12+ characters). Use a STRONG unique one. It will NOT be printed."
+        description: "Buatan KAMU SENDIRI: sandi 12+ char (huruf/angka/simbol), jangan pakai contoh. Ini kunci identity.pem, hanya kamu yg tahu. Tidak pernah ditampilkan."
         required: true
         type: string
 
