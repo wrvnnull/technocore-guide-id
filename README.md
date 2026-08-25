@@ -27,7 +27,11 @@ Gak punya laptop? Pakai **GitHub Codespaces** (browser di HP):
 
 Atau pakai **GitHub Actions** (button di bawah, tanpa buka terminal):
 - Klik **Actions ▸ Generate Technocore DID ▸ Run workflow** → isi passphrase →
-  jalankan. File `identity.pem` muncul di **Artifacts** (download sebelum expired).
+jalankan. File `identity.pem` (terenkripsi) muncul di **Artifacts** (download
+sebelum expired, 7 hari). Passphrase TIDAK pernah ditampilkan/log.
+
+> Repo ini **self-contained**: sudah berisi `technocore_agent.py` &
+> `requirements.txt`, jadi Codespaces/Action langsung jalan tanpa clone repo lain.
 
 ---
 
