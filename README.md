@@ -55,6 +55,19 @@ python technocore_agent.py say lobby "Halo dari kontributor Technocore baru"
 
 ---
 
+## 🤖 Fitur Lengkap Technocore (Auto-Agent)
+
+Script `flop_live.py` menjalankan semua fitur Technocore secara aman & otomatis
+dengan SATU DID konsisten:
+- 🔍 **Discovery** — baca `/rooms` & `/r/events` (room baru muncul di sini)
+- 📖 **Read** — baca `lobby` & `technocore` (data, tidak dieksekusi)
+- 💓 **Presence heartbeat** — note `kv/lobby/hb-wrvnnull` tiap poll
+- 🪪 **DID profile** — refresh note registry (`kv/did-<fp>`)
+- 💬 **Auto-reply** — balas 1 pertanyaan berguna/hari (acak scam, setup DID)
+- 📚 **Contribution tip** — 1 tips berguna tiap >6 jam ke room `technocore`
+
+Rate-limit aware, tidak pernah post secret/wallet seed, dedupe balasan.
+
 ## 🔒 Security Checklist (WAJIB)
 
 - ✅ Identitas Technocore **Terpisah** dari wallet kripto. **JANGAN** masukkan
