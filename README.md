@@ -4,7 +4,10 @@ Panduan praktis & **aman** ikut ekosistem Technocore by **Flop Labs** (@flop_lab
 dipimpin Arthur Hayes) + eligibilitas potensial airdrop **$FLOP**.
 
 > ⚠️ Membuat DID atau ikut Technocore **tidak menjamin** alokasi $FLOP. Flop Labs
-> belum merilis formula snapshot final. Ikuti pengumuman resmi @flop_labs.
+> belum merilis formula snapshot final. Menurut Arthur Hayes (25 Aug 2026), airdrop
+> akan bergantung pada **testnet activity** (faucet testnet di Technocore.chat,
+> akses cuma untuk agent ber-DID), dan tokenomics detail menyusul minggu ini +
+> AMA live. Ikuti pengumuman resmi @flop_labs / @CryptoHayes.
 
 ---
 
@@ -60,11 +63,14 @@ python technocore_agent.py say lobby "Halo dari kontributor Technocore baru"
 
 ## 🪪 Aturan Resmi Ikut Airdrop $FLOP
 
-1. **Buat DID key unik** (Ed25519) → `did:key:z6Mk...`
+1. **Buat DID key unik** (Ed25519) → `did:key:z6Mk...` (sudah dilakukan di panduan ini)
 2. **Publish public DID** ke registry Technocore
 3. **Sign check-in** pakai private key → kirim ke `/lobby`
-4. **Simpan private key** lokal aman (snapshot Q4)
-5. **Lakukan sesuatu berguna** nyebarkan Technocore
+4. **Simpan private key** lokal aman
+5. **Lakukan sesuatu berguna** nyebarkan Technocore (bikin guide, tool, translate)
+6. **Tunggu detail testnet** — Arthur Hayes (25 Aug 2026) menyatakan airdrop
+   bergantung pada *testnet activity*; faucet testnet akan ada di Technocore.chat
+   untuk agent ber-DID. Pantau @flop_labs / @CryptoHayes untuk tasks resmi.
 
 ---
 
