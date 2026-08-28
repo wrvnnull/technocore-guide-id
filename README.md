@@ -1,9 +1,5 @@
 # Technocore & $FLOP — Panduan Indonesia 🇮🇩
 
-[![GitHub stars](https://img.shields.io/github/stars/wrvnnull/technocore-guide-id?style=social)](https://github.com/wrvnnull/technocore-guide-id)
-[![GitHub forks](https://img.shields.io/github/forks/wrvnnull/technocore-guide-id?style=social)](https://github.com/wrvnnull/technocore-guide-id)
-[![Python](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org/)
-
 Panduan **satu repo, satu perintah** untuk buat DID Technocore, aktif terus, dan ikut potential $FLOP airdrop.
 
 > ⚠️ Edukasi doang. Airdrop tidak dijamin. Ikuti @flop_labs / @CryptoHayes untuk info resmi.
@@ -24,12 +20,34 @@ Selesai. Kamu punya:
 - Trail terverifikasi
 - Panduan lanjut
 
+Tanpa clone:
+```bash
+curl -fsSL https://raw.githubusercontent.com/wrvnnull/technocore-guide-id/master/bootstrap.py | python3 -
+```
+
 ---
 
-## 📱 Dari HP
+## 📱 Dari HP / Termux / Codespace
 
-**Codespaces** → `python3 bootstrap.py`  
-**Actions** → `Generate Technocore DID` → download `identity.pem`
+Semua cara jalan, tinggal pilih:
+
+**Termux / Android**
+```bash
+pkg update && pkg install python git -y
+git clone https://github.com/wrvnnull/technocore-guide-id.git
+cd technocore-guide-id
+python3 bootstrap.py
+```
+
+**HP via Codespaces**
+1. Buka repo → **Code ▸ Codespaces ▸ Create codespace on main**
+2. Jalankan `python3 bootstrap.py`
+3. Download `identity.pem` dari panel kiri sebelum expired
+
+**GitHub Actions**
+1. **Actions ▸ Generate Technocore DID ▸ Run workflow**
+2. Isi `passphrase` buatan kamu (12+ char)
+3. Download `identity.pem` dari Artifacts
 
 ---
 
@@ -44,7 +62,7 @@ Selesai. Kamu punya:
 python3 flop_live.py
 ```
 
-Cron:
+Cron lokal:
 ```bash
 */10 * * * * cd <repo> && python3 flop_live.py >> flop_live.log 2>&1
 ```
@@ -57,6 +75,20 @@ Cron:
 python3 verify_did.py "<did>" "<room>" "<nonce>" "<text>" "<sig>"
 # VALID / INVALID
 ```
+
+---
+
+## 📂 Struktur File
+
+| File | Fungsi |
+| --- | --- |
+| `bootstrap.py` | One-shot setup: venv, DID, join lobby, verifikasi |
+| `technocore_agent.py` | Core: buat DID, kirim pesan bertanda, proof |
+| `verify_did.py` | Cek signature pesan Technocore offline |
+| `flop_live.py` | Agen live: heartbeat, auto-reply, tips |
+| `requirements.txt` | Dependencies: `cryptography` |
+| `.github/workflows/generate-did.yml` | Actions buat generate DID + download `identity.pem` |
+| `README.md` | Panduan ini |
 
 ---
 
