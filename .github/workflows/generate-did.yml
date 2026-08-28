@@ -1,53 +1,30 @@
 name: Generate Technocore DID
-
 on:
   workflow_dispatch:
     inputs:
       passphrase:
-        description: "Buatan KAMU SENDIRI: sandi 12+ char (huruf/angka/simbol), jangan pakai contoh. Ini kunci identity.pem, hanya kamu yg tahu. Tidak pernah ditampilkan."
+        description: 'Passphrase for identity.pem (12+ chars)'
         required: true
         type: string
 
 jobs:
-  generate:
+  did:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
-
-      - name: Install dependencies
-        run: pip install -r requirements.txt
-
-      - name: Generate DID (encrypted)
+          python-version: '3.12'
+      - run: pip install -r requirements.txt
+      - run: python3 technocore_agent.py init
         env:
           PASSPHRASE: ${{ inputs.passphrase }}
-        run: |
-          python - <<'PY'
-          import os, technocore_agent as tc
-          p = os.environ["PASSPHRASE"]
-          if len(p) < 12:
-              raise SystemExit("passphrase too short")
-          did = tc.create_identity(__import__("pathlib").Path("identity.pem"), p)
-          print("DID_CREATED:" + did)
-          # publish DID note to registry
-          import hashlib, urllib.parse, urllib.request
-          fp = hashlib.sha256(did.encode()).hexdigest()[:16]
-          note = f"did:{did}|note:Technocore DID generated via GitHub Action"
-          url = f"https://technocore.chat/kv/did-{fp[:2]}/{fp[2:]}/set/{urllib.parse.quote(note)}"
-          try:
-              with urllib.request.urlopen(urllib.request.Request(url, headers={"User-Agent":"gh-action"}), timeout=20) as r:
-                  print("REGISTRY:" + r.read().decode()[:80])
-          except Exception as e:
-              print("REG_ERR:" + str(e)[:80])
-          PY
-
-      - name: Upload identity.pem as artifact
-        uses: actions/upload-artifact@v4
+      - run: python3 technocore_agent.py did
+      - run: python3 technocore_agent.py say lobby "Hello from a new Technocore contributor."
+        env:
+          PASSPHRASE: ${{ inputs.passphrase }}
+      - uses: actions/upload-artifact@v4
         with:
-          name: technocore-identity
+          name: identity-pem
           path: identity.pem
           retention-days: 7

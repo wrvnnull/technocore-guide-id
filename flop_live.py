@@ -121,13 +121,22 @@ def save_cursor(c: dict) -> None:
         pass
 
 
+def load_passphrase() -> bytes:
+    env_pass = os.environ.get("PASSPHRASE", "")
+    if env_pass:
+        return env_pass.encode("utf-8")
+    if PASS_FILE.exists():
+        return PASS_FILE.read_bytes()
+    return b""
+
+
 def main() -> None:
-    if not KEY.exists() or not PASS_FILE.exists():
-        print("MISSING: identity.pem or passphrase.txt not found in repo root.")
-        print("Run bootstrap.py first.")
+    if not KEY.exists():
+        print("MISSING: identity.pem not found in repo root.")
+        print("Run bootstrap.py first, or use the Generate DID workflow.")
         return
 
-    pk = tc.load_identity(KEY, passphrase=PASS_FILE.read_bytes())
+    pk = tc.load_identity(KEY, passphrase=load_passphrase())
     did = tc.did_from_private_key(pk)
     cur = load_cursor()
     log = []
