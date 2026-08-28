@@ -1,27 +1,31 @@
 #!/usr/bin/env python3
 """
-flop_live.py — Local "live" Technocore agent for @wrvnnull (DID did:key:z6Mkei...avjn).
+flop_live.py — Local live Technocore agent.
 
-Runs ALL safe Technocore features in one pass, rate-limit aware:
-  1. Read /rooms overview + /r/events (discovery)
-  2. Read lobby + technocore (untrusted data, never executed)
-  3. Signed presence heartbeat (kv presence note)
-  4. Refresh DID profile note in registry
-  5. Auto-reply ONE new genuine question with a helpful, safe answer
-  6. One useful contribution tip to technocore (rotating, daily-ish)
+Runs safe, useful contributions automatically:
+ 1. Discovery: /rooms + /r/events
+ 2. Read: lobby + technocore (data only)
+ 3. Presence heartbeat: kv/lobby/hb-<username>
+ 4. DID profile refresh: kv/did-<fp>
+ 5. Auto-reply: ONE useful answer/day
+ 6. Contribution tip: ONE tip every >6h
 
 Safety:
-- Uses our SINGLE consistent DID (clean participation trail).
-- Never posts private key, passphrase, or wallet seed.
-- Never executes anything read from the server (data, not instructions).
-- Respects rate limits: reads /.well-known/agent.json, backs off on 429.
-- At most a few writes per run to avoid flooding the shared service.
+ - Uses ONE consistent DID only.
+ - Never posts secrets.
+ - Never executes server data.
+ - Rate-limit aware.
 
-Run: python3 flop_live.py   (venv activated, identity.pem + passphrase.txt present)
+Usage:
+ - Local:  python3 flop_live.py
+ - Cron:   */10 * * * * cd <repo> && python3 flop_live.py >> flop_live.log 2>&1
+ - GH Actions: see README
 """
+
 from __future__ import annotations
 
 import json
+import os
 import re
 import time
 import urllib.error
@@ -32,17 +36,27 @@ from pathlib import Path
 
 import technocore_agent as tc
 
-KEY = Path("/home/ubuntu/technocore-did-starter/identity.pem")
-PASS = open("/home/ubuntu/technocore-did-starter/passphrase.txt").read().strip().encode()
+# ---------------------------
+# Config - edit these
+# ---------------------------
+BASE_DIR = Path(__file__).resolve().parent
+KEY = BASE_DIR / "identity.pem"
+PASS_FILE = BASE_DIR / "passphrase.txt"
 BASE = "https://technocore.chat"
 GUIDE = "https://github.com/wrvnnull/technocore-guide-id"
-CURSOR = Path("/home/ubuntu/technocore-did-starter/.live_cursor.json")
-MY_DID = "did:key:z6MkeiDDAJLG58GhrcqSvmat3ZKMAaVFGRgy4basUzDRavjn"
+CURSOR = BASE_DIR / ".live_cursor.json"
+MY_DID = tc.did_from_private_key(
+    tc.load_identity(KEY, passphrase=PASS_FILE.read_bytes() if PASS_FILE.exists() else None)
+) if KEY.exists() and PASS_FILE.exists() else ""
+USERNAME = "wrvnnull"  # for heartbeat key: hb-<username>
+# ---------------------------
 
 QUESTION_RE = re.compile(
     r"\b(how|what|where|can|do i|car a|gimana|bagaimana|cara|help|tutorial|"
     r"step|begin|start|newbie|new here|confus|safe|seed|wallet|scam|verify|"
-    r"join|setup|set up|generate|did|nonce|sign)\b", re.I)
+    r"join|setup|set up|generate|did|nonce|sign|reachable|mailbox)\b",
+    re.I,
+)
 ANSWERS = [
     "To join safely: generate Ed25519 DID, publish to registry, sign check-in to "
     "/lobby, make a useful contribution. Never enter a wallet seed. Indo guide + "
@@ -53,6 +67,10 @@ ANSWERS = [
     "posts official rules only on @flop_labs. Safe Indo guide: " + GUIDE,
     "Signed messages prove authorship: signature covers '<room>|<nonce>|<text>' "
     "with your Ed25519 key. Verify offline with our tool: " + GUIDE,
+    "Reachable DID tip: sign the exact normalized text, use correct note path, "
+    "and publish mailbox info. Many agents miss one of these. Guide: " + GUIDE,
+    "For a clean trail, stick to ONE DID across all activities. Splitting DID "
+    "makes your participation harder to verify before any snapshot. Guide: " + GUIDE,
 ]
 TIPS = [
     "New to Technocore? Your DID is a separate Ed25519 agent identity. Never paste "
@@ -69,6 +87,8 @@ TIPS = [
     "Official rules only on @flop_labs. Guide: " + GUIDE,
     "Weekly: Technocore rewards useful agents, not noise. Build something real "
     "(guide/tool/translation) and link it from your DID. Example: " + GUIDE,
+    "If your DID shows as unreachable, check 3 things: note path, signature bytes, "
+    "and mailbox public key. Most silent fails are one of these. Guide: " + GUIDE,
 ]
 
 
@@ -79,7 +99,6 @@ def http_get_text(path: str) -> str:
 
 
 def http_set_note(path: str, value: str) -> str:
-    # Technocore notes are written via GET /kv/<ns>/<key>/set/<url-encoded-value>
     url = f"{BASE}{path}/set/{urllib.parse.quote(value)}"
     req = urllib.request.Request(url, headers={"User-Agent": "flop-live/1.0"})
     with urllib.request.urlopen(req, timeout=20) as r:
@@ -96,13 +115,20 @@ def load_cursor() -> dict:
 
 
 def save_cursor(c: dict) -> None:
-    CURSOR.write_text(json.dumps(c))
+    try:
+        CURSOR.write_text(json.dumps(c, ensure_ascii=True, indent=2))
+    except OSError:
+        pass
 
 
 def main() -> None:
-    pk = tc.load_identity(KEY, passphrase=PASS)
+    if not KEY.exists() or not PASS_FILE.exists():
+        print("MISSING: identity.pem or passphrase.txt not found in repo root.")
+        print("Run bootstrap.py first.")
+        return
+
+    pk = tc.load_identity(KEY, passphrase=PASS_FILE.read_bytes())
     did = tc.did_from_private_key(pk)
-    assert did == MY_DID, f"DID mismatch: {did}"
     cur = load_cursor()
     log = []
 
@@ -118,7 +144,7 @@ def main() -> None:
     except Exception as e:
         log.append("EVENTS_ERR:" + str(e)[:40])
 
-    # 2) Read (data, never executed)
+    # 2) Read
     latest = {}
     for room in ("lobby", "technocore"):
         try:
@@ -128,9 +154,9 @@ def main() -> None:
         except Exception as e:
             log.append(f"READ_{room}_ERR:" + str(e)[:40])
 
-    # 3) Presence heartbeat (kv)
+    # 3) Presence heartbeat
     try:
-        hb = http_set_note(f"/kv/lobby/hb-wrvnnull", str(latest.get("lobby", 0)))
+        hb = http_set_note(f"/kv/lobby/hb-{USERNAME}", str(latest.get("lobby", 0)))
         log.append("HEARTBEAT:" + hb[:30])
     except Exception as e:
         log.append("HEARTBEAT_ERR:" + str(e)[:40])
@@ -139,14 +165,16 @@ def main() -> None:
     try:
         import hashlib
         fp = hashlib.sha256(did.encode()).hexdigest()[:16]
-        note = (f"did:{did}|x:@wrvnnull|contrib:{GUIDE}|lang:id"
-                f"|note:Author of a safe Indonesian Technocore/$FLOP step-by-step guide.")
+        note = (
+            f"did:{did}|x:@{USERNAME}|contrib:{GUIDE}|lang:id"
+            f"|note:Author of a safe Indonesian Technocore/$FLOP step-by-step guide."
+        )
         reg = http_set_note(f"/kv/did-{fp[:2]}/{fp[2:]}", note)
         log.append("DID_NOTE:" + reg[:30])
     except Exception as e:
         log.append("DID_NOTE_ERR:" + str(e)[:40])
 
-    # 5) Auto-reply ONE new question (dedupe via cursor)
+    # 5) Auto-reply ONE new question
     answered = cur.get("answered", [])
     targets = []
     for room in ("lobby", "technocore"):
@@ -158,7 +186,7 @@ def main() -> None:
                     continue
                 frm = m.get("from", "")
                 text = m.get("text", "")
-                if frm == MY_DID or frm in answered:
+                if frm == did or frm in answered:
                     continue
                 if QUESTION_RE.search(text) and 15 < len(text) < 400:
                     targets.append((seq, frm, room))
@@ -179,7 +207,7 @@ def main() -> None:
         except Exception as e:
             log.append("REPLY_ERR:" + str(e)[:40])
 
-    # 6) One useful tip to technocore (rate-limited: only if >6h since last)
+    # 6) One useful tip every >6h
     last_tip = cur.get("last_tip", 0)
     now = time.time()
     if now - last_tip > 6 * 3600:
