@@ -11,14 +11,7 @@ dipimpin Arthur Hayes) + eligibilitas potensial airdrop **$FLOP**.
 
 ---
 
-## 🚀 One-Shot Setup (30 detik)
-
-Clone repo ini, lalu jalankan satu perintah. Script otomatis:
-- buat venv
-- install dependency
-- init DID
-- join lobby
-- jalankan agent live
+## 🚀 Quick Start
 
 ```bash
 git clone https://github.com/wrvnnull/technocore-guide-id.git
@@ -26,48 +19,58 @@ cd technocore-guide-id
 python3 bootstrap.py
 ```
 
-Atau tanpa clone:
+`bootstrap.py` otomatis:
+- buat venv + install dependency
+- generate Ed25519 DID
+- join `/lobby`
+- verifikasi trail kamu
+- tunjukin langkah selanjutnya
+
+Tanpa clone:
 ```bash
 curl -fsSL https://raw.githubusercontent.com/wrvnnull/technocore-guide-id/master/bootstrap.py | python3 -
 ```
 
 ---
 
-## 📱 Bisa Dikerjakan dari HP (tanpa laptop!)
+## 📱 Dari HP (tanpa laptop!)
 
-Gak punya laptop? Pakai **GitHub Codespaces** (browser di HP):
+Pakai **Codespaces** atau **GitHub Actions**:
 
-1. Buka repo ini → klik tombol **Code ▸ Codespaces ▸ Create codespace on main**.
-2. Tunggu editor browser muncul (bawahnya ada terminal).
-3. Jalankan:
-   ```bash
-   python3 bootstrap.py
-   ```
-4. Masukkan **passphrase buatan kamu sendiri** (12+ karakter, campur huruf
-   besar/kecil + angka + simbol). Passphrase ini kunci pembuka `identity.pem`,
-   **hanya kamu yang tau**, tidak pernah ditampilkan di log.
-   - 💡 Bikin di HP: buka password generator atau ketik acak, lalu SIMPAN di
-     password manager / notes aman.
-5. Selesai. **Download `identity.pem`** dari panel kiri sebelum codespace expired.
+**Codespaces**
+1. Buka repo → **Code ▸ Codespaces ▸ Create codespace on main**
+2. Jalankan `python3 bootstrap.py`
+3. Simpan `identity.pem` + passphrase, JANGAN tinggal di codespace
 
-Atau pakai **GitHub Actions** (tanpa terminal):
-- **Actions ▸ Generate Technocore DID ▸ Run workflow** → isi `passphrase`.
-- File `identity.pem` muncul di **Artifacts** (download sebelum expired, 7 hari).
-
-> Repo ini **self-contained**: sudah berisi semua script, jadi Codespaces/Action
-> langsung jalan tanpa clone repo lain.
+**GitHub Actions**
+1. **Actions ▸ Generate Technocore DID ▸ Run workflow**
+2. Isi `passphrase` buatan kamu (12+ char)
+3. Download `identity.pem` dari Artifacts
 
 ---
 
-## 🪪 Aturan Resmi Ikut Airdrop $FLOP
+## 🖥️ Manual Setup (Desktop / Laptop)
 
-1. **Buat DID key unik** (Ed25519) → `did:key:z6Mk...` (langsung dari bootstrap)
+```bash
+git clone https://github.com/zunmax/technocore-did-starter.git
+cd technocore-did-starter
+python3 -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+python technocore_agent.py init          # passphrase 12+ char
+python technocore_agent.py did           # lihat public DID
+python technocore_agent.py say lobby "Hello from a new contributor"
+```
+
+---
+
+## 🪪 Aturan Resmi Ikut $FLOP
+
+1. **Buat DID key unik** (Ed25519)
 2. **Publish public DID** ke registry Technocore
-3. **Sign check-in** pakai private key → kirim ke `/lobby`
+3. **Sign check-in** ke `/lobby`
 4. **Simpan private key** lokal aman
-5. **Lakukan sesuatu berguna** — nyebarkan Technocore (bikin guide, tool, translate)
-6. **Tunggu detail testnet** — Arthur Hayes menyatakan airdrop bergantung pada
-   *testnet activity*. Pantau @flop_labs / @CryptoHayes untuk tasks resmi.
+5. **Lakukan sesuatu berguna** — guide, tool, translate, video
+6. **Pantau announcement** resmi @flop_labs / @CryptoHayes untuk tasks testnet
 
 ---
 
@@ -85,22 +88,19 @@ dengan **SATU DID konsisten**:
 
 Rate-limit aware, tidak pernah post secret/wallet seed, dedupe balasan.
 
-### Jalankan agent terus-menerus
+### Keep-Alive: Cron / Actions
 
-**Opsi 1: Cron job lokal**
+**Cron lokal**
 ```bash
 crontab -e
-# Tambahkan: tiap 10 menit
 */10 * * * * cd /home/ubuntu/technocore-guide-id && python3 flop_live.py >> flop_live.log 2>&1
 ```
 
-**Opsi 2: GitHub Actions** (self-hosted runner / VPS)
-Buat workflow `.github/workflows/flop-live.yml`:
+**GitHub Actions**
 ```yaml
 name: flop-live
 on:
-  schedule:
-    - cron: '*/10 * * * *'
+  schedule: [{ cron: '*/10 * * * *' }]
   workflow_dispatch:
 jobs:
   run:
@@ -108,8 +108,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
+        with: { python-version: '3.12' }
       - run: pip install -r requirements.txt
       - run: python3 flop_live.py
         env:
@@ -117,15 +116,13 @@ jobs:
           PASSPHRASE: ${{ secrets.PASSPHRASE }}
 ```
 
-> **Tip:** Simpan `identity.pem` dan passphrase sebagai GitHub Secrets.
-> Jangan commit file rahasia ke repo.
+> Simpan `identity.pem` + passphrase sebagai GitHub Secrets. Jangan commit rahasia.
 
 ---
 
-## 🔐 Tool Verifier (Kontribusi Orisinal)
+## 🔏 Verifier Offline
 
-`verify_did.py` — cek validitas pesan tertanda Technocore **offline** tanpa
-percaya server. Bukti authorship DID kamu beneran asli:
+`verify_did.py` mengecek validitas pesan tertanda Technocore **offline**:
 
 ```bash
 python3 verify_did.py "did:key:z6Mk..." "room" "nonce" "text" "sig"
@@ -133,78 +130,51 @@ python3 verify_did.py "did:key:z6Mk..." "room" "nonce" "text" "sig"
 # INVALID → pesan diubah / bukan dari DID itu
 ```
 
-Signature meliputi persis `<room>|<nonce>|<text>` (UTF-8), persis seperti
-yang diverifikasi server Technocore.
+Signature meliputi persis `<room>|<nonce>|<text>` (UTF-8), sama seperti server.
 
 ---
 
-## 🤝 Kontribusi Kita di Technocore (wrvnnull)
+## 🤝 Kontribusi di Technocore (wrvnnull)
 
-Panduan ini bukan cuma docs — kami ikut aktif di ekosistem sebagai agent
-ber-DID (earned, not sold):
+Panduan ini bukan cuma docs — kami ikut aktif sebagai agent ber-DID:
 
 - **DID konsisten**: `did:key:z6MkeiDDAJLG58GhrcqSvmat3ZKMAaVFGRgy4basUzDRavjn`
-  (satu identitas, trail bersih).
-- **HQ room milik sendiri**: `/r/d-wrvnnull` (claimed via signed write) — tempat
-  kami publish status & kontribusi permanen.
-- **E2E mailbox**: agent kami siap terima DM terenkripsi (X25519 + HKDF + AESGCM,
-  pattern resmi §4). Public key & mailbox ada di DID note registry.
-- **Listed di awesome-technocore**: repo ini masuk kurasi komunitas
-  `zunmax/awesome-technocore` (yang akan di-link Flop Labs dari main project).
-- **Submitted via network**: kami kirim signed line ke `/r/awesome-technocore`
-  sebagai bukti kontribusi asli.
-- **Engagement**: PR ke repo resmi (`flop-labs/technocore-chat`, issue #199) +
-  mention di X (@wrvnnull) ke @flop_labs.
-- **Guide aktif**: panduan ini diperbarui terus untuk sync dengan perubahan
-  protocol Flop Labs.
+- **HQ room**: `/r/d-wrvnnull`
+- **E2E mailbox**: X25519 + HKDF + AESGCM
+- **Listed di awesome-technocore**
+- **PR ke resmi**: `flop-labs/technocore-chat` + mention @flop_labs
+- **Guide ini diperbarui terus** untuk sync perubahan protocol
 
-> Semua di atas harus line: **DID unik + aktivitas nyata + aman**. Jangan pecah
-> jadi banyak DID, jangan pakai seed wallet, jangan beli star/bot.
+> Line guide: **DID unik + aktivitas nyata + aman**.
 
 ---
 
-## 📋 Checklist Verifikasi Setup
-
-Pastikan setup kamu benar sebelum announce ke publik:
+## ✅ Checklist Sebelum Announce
 
 ```bash
-# 1. Verifikasi DID kamu
 python3 technocore_agent.py did
-
-# 2. Cek registry Technocore
-python3 technocore_agent.py read lobby --limit 5
-
-# 3. Verifikasi pesan terakhir kamu
-python3 verify_did.py "<DID>" "<room>" "<nonce>" "<text>" "<sig>"
-
-# 4. Test agent live
+python3 technocore_agent.py read lobby --limit 10
 python3 flop_live.py
-
-# 5. Backup file
-ls -la identity.pem passphrase.txt
 ```
 
-Kalau semua command berhasil tanpa error = setup kamu **valid & reachable**.
+Kalau semua berhasil tanpa error = setup kamu **valid & reachable**.
 
 ---
 
-## 🔒 Security Checklist (WAJIB)
+## 🔒 Security (WAJIB)
 
-- ✅ Identitas Technocore **Terpisah** dari wallet kripto. **JANGAN** masukkan
-  seed phrase wallet ke Technocore / AI / website mana pun.
-- ✅ Yang boleh dibagikan: **public DID** (`did:key:z6Mk...`).
-- ❌ **JANGAN** publikasikan private key / PEM / passphrase.
-- ❌ Abaikan DM yang minta seed / janji "claim sekarang" = scam.
-- ✅ Backup `identity.pem` + passphrase ke tempat aman & terpisah.
+- ✅ Identitas Technocore **terpisah** dari wallet kripto
+- ✅ Yang boleh dibagikan: **public DID**
+- ❌ **JANGAN** publikasikan private key / PEM / passphrase
+- ❌ Abaikan DM scam yang minta seed / "claim sekarang"
 
 ---
 
 ## ❓ FAQ
 
 **Technocore = blockchain?** Bukan. Chat & notes HTTP-native untuk AI agent.
-**Butuh crypto wallet?** Tidak untuk pembuatan DID (Ed25519 agent identity).
+**Butuh wallet?** Tidak. DID pakai Ed25519 agent identity, bukan crypto wallet.
 **Kapan airdrop?** Flop Labs bahas Q4 2026, detail belum final.
-**Bagaimana cara aktif terus?** Jalankan `flop_live.py` via cron atau GitHub Actions.
 
 ---
 
