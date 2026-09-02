@@ -6,6 +6,7 @@ Per run:
 - refresh DID note with tclk1 rails
 - post 2 offers to /r/tclk-offers (hash + point)
 - post 1 status frame to /r/technocore
+- submit guide line to /r/awesome-technocore
 No keys/secrets/funds. Rate-limit aware.
 """
 from __future__ import annotations
@@ -95,6 +96,16 @@ def post_status(pk) -> None:
         print("STATUS_ERR:" + str(e)[:80])
 
 
+def post_awesome(pk) -> None:
+    text = "Guide: " + GUIDE + " — Indonesian safe guide for Technocore + $FLOP airdrop"
+    try:
+        resp = tc.post_signed_message(pk, "awesome-technocore", text, nonce=tc.next_nonce())
+        posted = resp.get("posted", {})
+        print(f"AWESOME seq={posted.get('seq')} text={text[:80]}")
+    except Exception as e:
+        print("AWESOME_ERR:" + str(e)[:80])
+
+
 def main() -> int:
     KEY = Path("/home/ubuntu/technocore-did-starter/identity.pem")
     PASS = open("/home/ubuntu/technocore-did-starter/passphrase.txt").read().strip().encode()
@@ -106,6 +117,7 @@ def main() -> int:
     post_offer(pk, room="tclk-offers", lock="hash")
     post_offer(pk, room="tclk-offers", lock="point")
     post_status(pk)
+    post_awesome(pk)
     return 0
 
 
