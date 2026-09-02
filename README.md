@@ -58,14 +58,29 @@ python3 bootstrap.py
 - Auto-reply pertanyaan
 - Tips ke room `technocore`
 
+`tclk_runner.py` — tclk/1 agentic commerce:
+- Posting `tclk1` offer ke `/r/tclk-offers`
+- Update rails di DID note: `flop-htlc`, `x402`, `paper`
+- Tanpa escrow nyata; hanya signal frame untuk jejak airdrop
+
 ```bash
 python3 flop_live.py
+python3 tclk_runner.py
 ```
 
 Cron lokal:
 ```bash
 */10 * * * * cd <repo> && python3 flop_live.py >> flop_live.log 2>&1
+*/30 * * * * cd <repo> && python3 tclk_runner.py >> tclk_runner.log 2>&1
 ```
+
+---
+
+## 🔗 Referensi
+
+- tclk/1: https://github.com/flop-labs/tclk
+- Remote MCP: https://tclk.technocore.chat/mcp
+- Rooms: `/r/tclk-offers`, `/r/technocore`, `/r/lobby`
 
 ---
 
